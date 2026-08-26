@@ -58,6 +58,27 @@ npm run dev     # http://localhost:3000
 
 ---
 
+## Deploy na Vercel
+
+Aplikacija NIJE u korenu repoa, pa je jedno podesavanje obavezno:
+
+1. **Settings -> Build and Deployment -> Root Directory** = `vbk-web`
+   Bez toga Vercel ne nadje `package.json`, build se ne pokrene i sajt vraca
+   404 NOT_FOUND. Podesavanje ne vazi za vec napravljene deploye - posle izmene
+   ide Redeploy.
+
+2. **Settings -> Environment Variables** - nalepi ceo sadrzaj `.env.local` u
+   polje za ime varijable; Vercel prepozna `.env` format i razbije ga sam.
+   Ukljuci Production, Preview i Development. `FIREBASE_PRIVATE_KEY` ide bez
+   spoljnih navodnika (radi i u jednom redu sa `\n` i kao viseredni tekst).
+
+3. **Firebase konzola -> Authentication -> Settings -> Authorized domains** ->
+   dodaj `<projekat>.vercel.app`, pa kasnije i pravi domen. Bez toga prijava
+   puca sa `auth/unauthorized-domain`.
+
+Firestore pravila i indeksi se ne deployuju kroz Vercel - to ide zasebno,
+`npm run deploy:rules`.
+
 ## Strukura
 
 ```
