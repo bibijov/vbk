@@ -1,0 +1,98 @@
+rules_version = '2';
+
+// VBK — Veterinarska banka krvi
+// Pravilo palca: kartoni pasa i korisnici su iskljucivo admin; klinika vidi
+// katalog i iskljucivo SVOJE porudzbine. Sve sto pise javnost (prijave donora,
+// zahtevi klinika) ide kroz API rute sa Admin SDK-om, pa je ovde zabranjeno.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Uloga se cita iz custom claims (postavlja ih /api/admin/users).
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && role() == 'admin';
+    }
+
+    function isClinic() {
+      return isSignedIn() && role() == 'clinic';
+    }
+
+    function myClinicId() {
+      return request.auth.token.clinicId;
+    }
+
+    /* ------------------------------ korisnici ------------------------------ */
+    // Svako cita svoj profil (odatle UI zna ulogu). Pisanje ide kroz Admin SDK.
+    match /users/{uid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow write: if false;
+    }
+
+    /* ------------------------------- klinike ------------------------------- */
+    match /clinics/{clinicId} {
+      allow read: if isAdmin() || (isClinic() && myClinicId() == clinicId);
+      allow create, delete: if isAdmin();
+
+      // Admin menja sve; klinika samo svoje kontakt podatke i adresu isporuke.
+      allow update: if isAdmin()
+        || (isClinic()
+            && myClinicId() == clinicId
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['contactPerson', 'phone', 'emergencyPhone',
+                           'deliveryAddress', 'updatedAt']));
+    }
+
+    /* ------------------------------ proizvodi ------------------------------ */
+    // Katalog vide sve prijavljene klinike; menja ga samo VBK.
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    /* ----------------------------- porudzbine ------------------------------ */
+    // Kreiranje i promena statusa idu kroz API rute (transakcija + zalihe),
+    // pa je direktan upis dozvoljen samo adminu (interna beleska, seenByAdmin).
+    match /orders/{orderId} {
+      allow read: if isAdmin()
+        || (isClinic() && resource.data.clinicId == myClinicId());
+      allow create: if false;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    /* --------------------------- kartoni donora ---------------------------- */
+    // Medicinski podaci i licni podaci vlasnika — iskljucivo VBK tim.
+    match /dogs/{dogId} {
+      allow read, write: if isAdmin();
+
+      match /visits/{visitId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    /* ---------------------------- prijave donora --------------------------- */
+    // Upis ide kroz /api/applications (Admin SDK), citanje samo VBK tim.
+    match /applications/{applicationId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if false;
+    }
+
+    /* -------------------------------- brojaci ------------------------------ */
+    match /counters/{counterId} {
+      allow read, write: if false;
+    }
+
+    // Sve ostalo je zabranjeno.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,23 @@
+# --- Tajne: nikad, ni pod kojim uslovima ---------------------------------
+.env
+.env.*
+!.env.*.example
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+*.pem
+*.key
+
+# --- Zavisnosti i build ---------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# --- Alati i OS -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+.vercel
+.firebase/
+.turbo/

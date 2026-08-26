@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brend VBK */
+  --color-blood: #d7292a;
+  --color-blood-dark: #bb242b;
+  --color-blood-soft: #fdecec;
+  --color-navy: #1d3557;
+  --color-navy-soft: #eef2f8;
+
+  /* Neutralne */
+  --color-paper: #fbfaf8;
+  --color-surface: #ffffff;
+  --color-line: #e7e3dd;
+  --color-ink: #1b1a19;
+  --color-ink-soft: #5c5954;
+  --color-ink-mute: #8b867f;
+
+  /* Statusi */
+  --color-ok: #1f8a5b;
+  --color-ok-soft: #e7f5ee;
+  --color-warn: #b3711a;
+  --color-warn-soft: #fdf3e3;
+  --color-info: #2563a8;
+  --color-info-soft: #e9f1fa;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 12px;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Skrivanje spinnera na number inputima */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@keyframes vbk-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(215 41 42 / 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgb(215 41 42 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(215 41 42 / 0);
+  }
+}
+.pulse-ring {
+  animation: vbk-pulse-ring 1.8s ease-out infinite;
+}
